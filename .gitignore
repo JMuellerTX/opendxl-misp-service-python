@@ -3,3 +3,6 @@ dist/
 *.pyc
 build/
 dxlmispservice.egg-info/
+*.csr
+*.key
+*.crt
