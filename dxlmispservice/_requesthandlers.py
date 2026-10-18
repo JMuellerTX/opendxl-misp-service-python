@@ -55,6 +55,6 @@ class MispServiceRequestCallback(RequestCallback):
             error_str = str(ex)
             logger.exception("Error handling request: %s", error_str)
             res = ErrorResponse(request,
-                                error_message=MessageUtils.encode(error_str))
+                                error_message=error_str)
 
         self._app.client.send_response(res)
