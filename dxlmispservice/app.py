@@ -6,6 +6,7 @@ import zmq
 from pymisp import PyMISP
 
 from dxlbootstrap.app import Application
+from dxlbootstrap.util import MessageUtils
 from dxlclient import ServiceRegistrationInfo
 from dxlclient.message import Event
 from dxlmispservice._requesthandlers import MispServiceRequestCallback
