@@ -43,8 +43,11 @@ class MispServiceRequestCallback(RequestCallback):
             response_data = self._api_method(**request_dict)
             if isinstance(response_data, dict) and \
                     response_data.get("errors", None):
-                res = ErrorResponse(
-                    request, error_message=str(response_data["errors"][0]))
+                errors = response_data["errors"]
+                err_msg = str(errors[0]) \
+                    if isinstance(errors, (list, tuple)) and errors \
+                    else str(errors)
+                res = ErrorResponse(request, error_message=err_msg)
             else:
                 res = Response(request)
             MessageUtils.dict_to_json_payload(res, response_data)

@@ -416,7 +416,7 @@ class MispService(Application):
                     event = Event(full_event_topic)
                     logger.debug("Forwarding notification to %s ...",
                                  full_event_topic)
-                    event.payload = payload
+                    MessageUtils.encode_payload(event, payload)
                     self.client.send_event(event)
 
     @staticmethod
