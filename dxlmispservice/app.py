@@ -486,11 +486,13 @@ class MispService(Application):
         :rtype: instancemethod
         """
         api_method = None
-        if hasattr(self._api_client, api_name):
+        if api_name and not api_name.startswith("_") and \
+                hasattr(self._api_client, api_name):
             api_attr = getattr(self._api_client, api_name)
             if callable(api_attr):
                 api_method = api_attr
         return api_method
+
 
     def on_register_services(self):
         """

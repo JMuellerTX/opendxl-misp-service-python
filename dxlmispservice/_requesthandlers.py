@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import logging
+import re
 
 from dxlbootstrap.util import MessageUtils
 from dxlclient.callbacks import RequestCallback
@@ -7,6 +8,8 @@ from dxlclient.message import ErrorResponse, Response
 
 # Configure local logger
 logger = logging.getLogger(__name__)
+
+_CONTROLLER_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 class MispServiceRequestCallback(RequestCallback):
@@ -35,12 +38,21 @@ class MispServiceRequestCallback(RequestCallback):
         try:
             request_dict = MessageUtils.json_payload_to_dict(request) \
                 if request.payload else {}
+            if not isinstance(request_dict, dict):
+                raise ValueError("Request payload must be a JSON object")
+            if "controller" in request_dict:
+                controller = request_dict["controller"]
+                if not isinstance(controller, str) or \
+                        not _CONTROLLER_PATTERN.match(controller) or \
+                        ".." in controller:
+                    raise ValueError("Invalid controller parameter")
             if "event" in request_dict and \
                     type(request_dict["event"]).__name__ in ("str", "unicode") and \
                     request_dict["event"].isdigit():
                 request_dict["event"] = int(request_dict["event"])
 
             response_data = self._api_method(**request_dict)
+
             if isinstance(response_data, dict) and \
                     response_data.get("errors", None):
                 errors = response_data["errors"]

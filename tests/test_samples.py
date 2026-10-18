@@ -401,3 +401,33 @@ class Sample(unittest.TestCase):
             )
         )
         mock_print.assert_any_call(StringDoesNotMatch("Error invoking request"))
+
+    def test_private_api_method_and_controller_validation(self):
+        from mock import MagicMock
+        from dxlclient.message import Request, Message
+        from dxlmispservice._requesthandlers import MispServiceRequestCallback
+
+        app = dxlmispservice.MispService("sample")
+        app._api_client = MagicMock()
+        app._api_client._prepare_request = MagicMock()
+        app._api_client.search = MagicMock(return_value={"response": []})
+
+        self.assertIsNone(app._get_api_method("_prepare_request"))
+        self.assertIsNotNone(app._get_api_method("search"))
+
+        app._dxl_client = MagicMock()
+        cb = MispServiceRequestCallback(app, app._api_client.search)
+
+        for bad_controller in ["../admin", "events/delete", "events..test", ""]:
+            req = Request("/opendxl-misp/service/misp-api/search")
+            req.payload = json.dumps({"controller": bad_controller}).encode("utf-8")
+            cb.on_request(req)
+            sent_res = app._dxl_client.send_response.call_args[0][0]
+            self.assertEqual(Message.MESSAGE_TYPE_ERROR, sent_res.message_type)
+
+        list_req = Request("/opendxl-misp/service/misp-api/search")
+        list_req.payload = b'["not", "a", "dict"]'
+        cb.on_request(list_req)
+        sent_res = app._dxl_client.send_response.call_args[0][0]
+        self.assertEqual(Message.MESSAGE_TYPE_ERROR, sent_res.message_type)
+
